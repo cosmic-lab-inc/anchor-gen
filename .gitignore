@@ -14,3 +14,20 @@ target/
 *.pdb
 
 # End of https://www.toptal.com/developers/gitignore/api/rust
+
+**/target
+/.idea
+/test-ledger
+/ledger
+.env
+**/.DS_Store
+.DS_Store
+test-ledger
+snapshots
+*.tar
+*.zst
+*.csv
+gcs_snapshots.json
+/keys
+**/*.png
+
