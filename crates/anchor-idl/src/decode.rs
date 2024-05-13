@@ -5,6 +5,13 @@ pub trait DecodeAccount: Sized {
   fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>>;
 }
 
+pub trait DecodeInstruction: Sized {
+  /// Deserialize a program instruction into its defined (struct) type using Borsh.
+  /// utf8 discriminant is the human-readable discriminant, such as "PlacePerpOrder", and usually the name
+  /// of the struct marked with an Anchor macro that derives the Discriminator trait.
+  fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<(), Box<dyn std::error::Error>>;
+}
+
 #[macro_export]
 macro_rules! decode_account {
     ($vis:vis enum $ident:ident {
@@ -27,6 +34,34 @@ macro_rules! decode_account {
                       },
                     )*
                     _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid account discriminant".to_string())))
+                }
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! decode_instruction {
+    ($vis:vis enum $ident:ident {
+        $($variant:ident ($ix_type:ty)),*$(,)?
+    }) => {
+        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
+        $vis enum $ident {
+            $($variant($ix_type),)*
+        }
+
+        impl $crate::DecodeInstruction for $ident {
+            fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<(), Box<dyn std::error::Error>> {
+                match utf8_discrim {
+                    $(
+                      $variant if utf8_discrim == $crate::get_type_name::<$ix_type>() => {
+                          println!("Decoding instruction: {}", utf8_discrim);
+                          // let acct = <$ix_type>::try_from_slice(&data[8..])?;
+                          // Ok(Self::$variant(acct.clone()))
+                          Ok(())
+                      },
+                    )*
+                    _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid instruction discriminant".to_string())))
                 }
             }
         }
