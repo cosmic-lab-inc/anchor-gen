@@ -146,6 +146,7 @@ version = "0.3.1"
 dependencies = [
  "anchor-generate-cpi-crate",
  "anchor-generate-cpi-interface",
+ "anchor-idl",
 ]
 
 [[package]]
@@ -228,9 +229,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.65"
+version = "1.0.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
+checksum = "25bdb32cbbdce2b519a9cd7df3a678443100e265d5e25ca763b7572a5104f5f3"
 
 [[package]]
 name = "arrayref"
@@ -635,7 +636,7 @@ dependencies = [
 
 [[package]]
 name = "govern-cpi"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anchor-gen",
  "anchor-lang",
@@ -827,7 +828,7 @@ dependencies = [
 
 [[package]]
 name = "marinade-cpi"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anchor-gen",
  "anchor-lang",
@@ -1395,7 +1396,7 @@ dependencies = [
 
 [[package]]
 name = "whirlpools"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anchor-gen",
  "anchor-lang",

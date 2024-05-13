@@ -14,5 +14,10 @@
 //!
 //! More examples can be found in the [examples/](https://github.com/saber-hq/anchor-gen/tree/master/examples) directory.
 
+extern crate self as anchor_gen;
+
 pub use anchor_generate_cpi_crate::generate_cpi_crate;
 pub use anchor_generate_cpi_interface::generate_cpi_interface;
+pub use anchor_idl::decode_account;
+pub use anchor_idl::DecodeAccount;
+pub use anchor_idl::get_type_name;

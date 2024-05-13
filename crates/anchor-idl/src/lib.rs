@@ -7,12 +7,14 @@ mod instruction;
 mod program;
 mod state;
 mod typedef;
+mod decode;
 
 pub use account::*;
 pub use instruction::*;
 pub use program::*;
 pub use state::*;
 pub use typedef::*;
+pub use decode::*;
 
 /// Version of anchor-idl.
 pub const GEN_VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");

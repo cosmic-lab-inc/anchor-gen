@@ -18,7 +18,7 @@ proc-macro = true
 compat-program-result = ["anchor-idl/compat-program-result"]
 
 [dependencies]
-anchor-idl = { version = "0.3.0", path = "../anchor-idl" }
+anchor-idl = { version = "0.3.1", path = "../anchor-idl" }
 syn = { version = "1", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"

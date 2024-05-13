@@ -20,5 +20,6 @@ compat-program-result = [
 ]
 
 [dependencies]
-anchor-generate-cpi-crate = { version = "0.3.0", path = "../anchor-generate-cpi-crate" }
-anchor-generate-cpi-interface = { version = "0.3.0", path = "../anchor-generate-cpi-interface" }
+anchor-generate-cpi-crate = { version = "0.3.1", path = "../anchor-generate-cpi-crate" }
+anchor-generate-cpi-interface = { version = "0.3.1", path = "../anchor-generate-cpi-interface" }
+anchor-idl = { version = "0.3.1", path = "../../crates/anchor-idl" }

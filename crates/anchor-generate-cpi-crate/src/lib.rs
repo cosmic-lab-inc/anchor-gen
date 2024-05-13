@@ -15,9 +15,8 @@
 //! More examples can be found in the [examples/](https://github.com/saber-hq/anchor-gen/tree/master/examples) directory.
 
 use anchor_idl::GeneratorOptions;
-use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, LitStr, Ident, Token, punctuated::Punctuated, parse::Parse};
+use syn::{parse_macro_input, LitStr};
 
 /// Generates an Anchor CPI crate from a JSON file.
 ///
@@ -57,30 +56,29 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         quote! { #variant_name(#ident) }
     });
     let account_ts2: proc_macro2::TokenStream = quote! {
-        #[repr(C)]
-        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
-        #[derive(Clone)]
-        pub enum AccountType {
-            #(#acct_variants,)*
-        }
+        anchor_gen::decode_account!(
+            pub enum AccountType {
+                #(#acct_variants,)*
+            }
+        );
     };
     let account_ts: proc_macro::TokenStream = account_ts2.into();
     ts.extend(account_ts);
     
-    let ix_idents = gen.instruction_idents();
-    let ix_variants = ix_idents.into_iter().map(|ident| {
-        let variant_name = ident.clone();
-        quote! { #variant_name(#ident<'info>) }
-    });
-    let ix_ts2: proc_macro2::TokenStream = quote! {
-        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
-        // #[derive(Accounts)]
-        pub enum InstructionType<'info> {
-            #(#ix_variants,)*
-        }
-    };
-    let ix_ts: proc_macro::TokenStream = ix_ts2.into();
-    ts.extend(ix_ts);
+    // let ix_idents = gen.instruction_idents();
+    // let ix_variants = ix_idents.into_iter().map(|ident| {
+    //     let variant_name = ident.clone();
+    //     quote! { #variant_name(#ident<'info>) }
+    // });
+    // let ix_ts2: proc_macro2::TokenStream = quote! {
+    //     #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
+    //     // #[derive(Accounts)]
+    //     pub enum InstructionType<'info> {
+    //         #(#ix_variants,)*
+    //     }
+    // };
+    // let ix_ts: proc_macro::TokenStream = ix_ts2.into();
+    // ts.extend(ix_ts);
     
     ts
 }
