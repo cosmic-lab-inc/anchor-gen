@@ -65,20 +65,20 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let account_ts: proc_macro::TokenStream = account_ts2.into();
     ts.extend(account_ts);
     
-    // let ix_idents = gen.instruction_idents();
-    // let ix_variants = ix_idents.into_iter().map(|ident| {
-    //     let variant_name = ident.clone();
-    //     quote! { #variant_name(#ident<'info>) }
-    // });
-    // let ix_ts2: proc_macro2::TokenStream = quote! {
-    //     #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
-    //     // #[derive(Accounts)]
-    //     pub enum InstructionType<'info> {
-    //         #(#ix_variants,)*
-    //     }
-    // };
-    // let ix_ts: proc_macro::TokenStream = ix_ts2.into();
-    // ts.extend(ix_ts);
+    let ix_idents = gen.instruction_idents();
+    let ix_variants = ix_idents.into_iter().map(|ident| {
+        let variant_name = ident.clone();
+        quote! { #variant_name(#ident<'info>) }
+    });
+    let ix_ts2: proc_macro2::TokenStream = quote! {
+        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
+        // #[derive(Accounts)]
+        pub enum InstructionType<'info> {
+            #(#ix_variants,)*
+        }
+    };
+    let ix_ts: proc_macro::TokenStream = ix_ts2.into();
+    ts.extend(ix_ts);
     
     ts
 }
