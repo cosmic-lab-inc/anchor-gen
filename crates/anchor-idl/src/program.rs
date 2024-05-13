@@ -5,6 +5,7 @@ use std::{
 };
 
 use darling::{util::PathList, FromMeta};
+use heck::ToPascalCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
@@ -33,7 +34,7 @@ impl GeneratorOptions {
     pub fn to_generator(&self) -> Generator {
         let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
         let path = PathBuf::from(cargo_manifest_dir).join(&self.idl_path);
-        let idl_contents = fs::read_to_string(&path).unwrap();
+        let idl_contents = fs::read_to_string(path).unwrap();
         let idl: anchor_syn::idl::Idl = serde_json::from_str(&idl_contents).unwrap();
 
         let zero_copy = path_list_to_string(self.zero_copy.as_ref());
@@ -123,6 +124,6 @@ impl Generator {
     }
 
     pub fn instruction_idents(&self) -> Vec<Ident> {
-        self.idl.instructions.iter().map(|d| format_ident!("{}", d.name)).collect()
+        self.idl.instructions.iter().map(|d| format_ident!("{}", d.name.to_pascal_case())).collect()
     }
 }
