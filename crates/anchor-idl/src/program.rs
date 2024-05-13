@@ -8,9 +8,7 @@ use darling::{util::PathList, FromMeta};
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
-use crate::{
-    generate_accounts, generate_ix_handlers, generate_ix_structs, generate_typedefs, GEN_VERSION,
-};
+use crate::{generate_accounts, generate_ix_handlers, generate_ix_structs, generate_typedefs, GEN_VERSION};
 
 #[derive(Default, FromMeta)]
 pub struct GeneratorOptions {
@@ -72,57 +70,21 @@ impl Generator {
     pub fn generate_cpi_interface(&self) -> TokenStream {
         let idl = &self.idl;
         let program_name: Ident = format_ident!("{}", idl.name);
-
+        
         let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
         let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
         let ix_handlers = generate_ix_handlers(&idl.instructions);
         let ix_structs = generate_ix_structs(&idl.instructions);
 
         let docs = format!(
-        " Anchor CPI crate generated from {} v{} using [anchor-gen](https://crates.io/crates/anchor-gen) v{}.",
-        &idl.name,
-        &idl.version,
-        &GEN_VERSION.unwrap_or("unknown")
-    );
+            " Anchor CPI crate generated from {} v{} using [anchor-gen](https://crates.io/crates/anchor-gen) v{}.",
+            &idl.name,
+            &idl.version,
+            &GEN_VERSION.unwrap_or("unknown")
+        );
 
         quote! {
             use anchor_lang::prelude::*;
-            
-            // Define an empty enum to hold all account types
-            #[derive(Debug)]
-            pub enum AccountType {
-                // Variants will be added here
-            }
-            
-            // Define an empty enum to hold all instruction types
-            #[derive(Debug)]
-            pub enum InstructionType {
-                // Variants will be added here
-            }
-            
-            macro_rules! add_account_type {
-                ($name:ident) => {
-                    // Extend the enum to include the new type
-                    #[allow(non_snake_case)]
-                    impl AccountType {
-                        fn $name(value: $name) -> Self {
-                            AccountType::$name(value)
-                        }
-                    }
-                };
-            }
-            
-            macro_rules! add_instruction_type {
-                ($name:ident) => {
-                    // Extend the enum to include the new type
-                    #[allow(non_snake_case)]
-                    impl InstructionType {
-                        fn $name(value: $name) -> Self {
-                            InstructionType::$name(value)
-                        }
-                    }
-                };
-            }
 
             pub mod typedefs {
                 //! User-defined types.
@@ -154,5 +116,13 @@ impl Generator {
                 #ix_handlers
             }
         }
+    }
+    
+    pub fn account_idents(&self) -> Vec<Ident> {
+        self.idl.accounts.iter().map(|d| format_ident!("{}", d.name)).collect()
+    }
+
+    pub fn instruction_idents(&self) -> Vec<Ident> {
+        self.idl.instructions.iter().map(|d| format_ident!("{}", d.name)).collect()
     }
 }

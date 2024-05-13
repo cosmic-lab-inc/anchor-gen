@@ -57,8 +57,6 @@ pub fn generate_ix_structs(ixs: &[IdlInstruction]) -> TokenStream {
             pub struct #accounts_name<'info> {
                 #all_fields
             }
-            
-            // add_instruction_type!(#accounts_name<'info>);
         }
     });
     quote! {

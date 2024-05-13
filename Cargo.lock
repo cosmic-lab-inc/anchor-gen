@@ -154,6 +154,8 @@ version = "0.3.1"
 dependencies = [
  "anchor-idl",
  "anchor-lang",
+ "proc-macro2",
+ "quote",
  "syn 1.0.109",
 ]
 

@@ -15,7 +15,9 @@
 //! More examples can be found in the [examples/](https://github.com/saber-hq/anchor-gen/tree/master/examples) directory.
 
 use anchor_idl::GeneratorOptions;
-use syn::{parse_macro_input, LitStr};
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{parse_macro_input, LitStr, Ident, Token, punctuated::Punctuated, parse::Parse};
 
 /// Generates an Anchor CPI crate from a JSON file.
 ///
@@ -45,5 +47,28 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         idl_path: id_literal.value(),
         ..Default::default()
     };
-    opts.to_generator().generate_cpi_interface().into()
+    
+    let gen = opts.to_generator();
+    let mut ts: proc_macro::TokenStream = gen.generate_cpi_interface().into();
+    
+    let acct_idents = gen.account_idents();
+    let acct_variants = acct_idents.into_iter().map(|ident| {
+        let variant_name = ident.clone();
+        quote! { #variant_name(#ident) }
+    });
+    
+    let account_ts2: proc_macro2::TokenStream = quote! {
+        #[repr(C)]
+        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
+        #[derive(Clone)]
+        pub enum AccountType {
+            #(#acct_variants,)*
+        }
+    };
+    let account_ts: proc_macro::TokenStream = account_ts2.into();
+    ts.extend(account_ts);
+    
+    // let ix_idents = gen.instruction_idents();
+    
+    ts
 }
