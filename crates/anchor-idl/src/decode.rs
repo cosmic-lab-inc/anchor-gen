@@ -13,7 +13,7 @@ pub trait Decode: Sized {
   /// Deserialize a program account into its defined (struct) type using Borsh.
   /// utf8 discriminator is the human-readable discriminator, such as "User", and usually the name
   /// of the struct marked with the #[account] Anchor macro that derives the Discriminator trait.
-  fn decode(discrim: [u8; 8], data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>>;
+  fn decode(data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>>;
 }
 
 pub trait NameToDiscrim: Sized {
@@ -63,19 +63,22 @@ macro_rules! derive_account_type {
         }
 
         impl $crate::Decode for $ident {
-            fn decode(discrim: [u8; 8], data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>> {
-                match discrim {
-                    $(
-                      $variant if discrim == $crate::account_discriminator(&$crate::get_type_name::<$account_type>()) => {
-                          let acct = <$account_type>::try_from_slice(&data[8..])?;
-                          Ok(Self::$variant(acct.clone()))
-                      },
-                    )*
-                    _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid account discriminator".to_string())))
-                }
+          fn decode(data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>> {
+            let discrim: &[u8; 8] = data[..8].try_into().map_err(|e| {
+              Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Instruction data is not 8 bytes or more".to_string()))
+            })?;
+            match discrim {
+              $(
+                $variant if discrim == &$crate::account_discriminator(&$crate::get_type_name::<$account_type>()) => {
+                    let acct = <$account_type>::try_from_slice(&data[8..])?;
+                    Ok(Self::$variant(acct.clone()))
+                },
+              )*
+              _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid account discriminator".to_string())))
             }
+          }
         }
-        
+
         impl $crate::NameToDiscrim for $ident {
             fn name_to_discrim(name: &str) -> std::result::Result<[u8; 8], Box<dyn std::error::Error>> {
                 match name {
@@ -89,7 +92,7 @@ macro_rules! derive_account_type {
                 }
             }
         }
-      
+
         impl $crate::DiscrimToName for $ident {
             fn discrim_to_name(discrim: [u8; 8]) -> std::result::Result<String, Box<dyn std::error::Error>> {
                 match discrim {
@@ -118,19 +121,22 @@ macro_rules! derive_instruction_type {
         }
 
         impl $crate::Decode for $ident {
-            fn decode(discrim: [u8; 8], data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>> {
-                match discrim {
-                    $(
-                      $variant if discrim == $crate::instruction_discriminator(&$crate::get_type_name::<$ix_type>()) => {
-                          let ix = <$ix_type>::deserialize(&mut &data[8..])?;
-                           Ok(Self::$variant(ix))
-                      },
-                    )*
-                    _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid instruction discriminator".to_string())))
-                }
+          fn decode(data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>> {
+            let discrim: &[u8; 8] = data[..8].try_into().map_err(|e| {
+              Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Instruction data is not 8 bytes or more".to_string()))
+            })?;
+            match discrim {
+                $(
+                  $variant if discrim == &$crate::instruction_discriminator(&$crate::get_type_name::<$ix_type>()) => {
+                      let ix = <$ix_type>::deserialize(&mut &data[8..])?;
+                       Ok(Self::$variant(ix))
+                  },
+                )*
+                _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid instruction discriminator".to_string())))
             }
+          }
         }
-      
+
         impl $crate::NameToDiscrim for $ident {
             fn name_to_discrim(name: &str) -> std::result::Result<[u8; 8], Box<dyn std::error::Error>> {
                 match name {
@@ -144,7 +150,7 @@ macro_rules! derive_instruction_type {
                 }
             }
         }
-      
+
         impl $crate::DiscrimToName for $ident {
             fn discrim_to_name(discrim: [u8; 8]) -> std::result::Result<String, Box<dyn std::error::Error>> {
                 match discrim {
