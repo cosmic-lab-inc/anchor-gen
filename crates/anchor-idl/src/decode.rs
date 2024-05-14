@@ -6,17 +6,10 @@ pub fn get_type_name<'a, T: ?Sized + 'a>() -> String {
   }
 }
 
-pub trait DecodeAccount: Sized {
+pub trait Decode: Sized {
   /// Deserialize a program account into its defined (struct) type using Borsh.
   /// utf8 discriminant is the human-readable discriminant, such as "User", and usually the name
   /// of the struct marked with the #[account] Anchor macro that derives the Discriminator trait.
-  fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>>;
-}
-
-pub trait DecodeInstruction: Sized {
-  /// Deserialize a program instruction into its defined (struct) type using Borsh.
-  /// utf8 discriminant is the human-readable discriminant, such as "PlacePerpOrder", and usually the name
-  /// of the struct marked with an Anchor macro that derives the Discriminator trait.
   fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>>;
 }
 
@@ -32,7 +25,7 @@ macro_rules! decode_account {
             $($variant($account_type),)*
         }
 
-        impl $crate::DecodeAccount for $ident {
+        impl $crate::Decode for $ident {
             fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>> {
                 match utf8_discrim {
                     $(
@@ -59,7 +52,7 @@ macro_rules! decode_instruction {
             $($variant($ix_type),)*
         }
 
-        impl $crate::DecodeInstruction for $ident {
+        impl $crate::Decode for $ident {
             fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>> {
                 match utf8_discrim {
                     $(
