@@ -2,7 +2,6 @@ pub use anchor_syn::idl::*;
 use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use crate::get_type_name;
 
 /// Generates a list of [IdlAccountItem]s as a [TokenStream].
 pub fn generate_account_fields(

@@ -50,27 +50,25 @@ macro_rules! decode_account {
 
 #[macro_export]
 macro_rules! decode_instruction {
-    ($vis:vis enum $ident:ident <$lifetime:lifetime> {
-        $($variant:ident($ix_type:ident<$lt:lifetime>)),*$(,)?
+    ($vis:vis enum $ident:ident {
+        $($variant:ident($ix_type:path)),*$(,)?
     }) => {
         // #[repr(C)]
-        // #[derive(anchor_lang::prelude::AnchorDeserialize)]
         // #[derive(Clone)]
-        $vis enum $ident <$lifetime> {
-            $($variant($ix_type<$lifetime>),)*
-
+        #[derive(anchor_lang::prelude::AnchorSerialize, anchor_lang::prelude::AnchorDeserialize)]
+        $vis enum $ident {
+            $($variant($ix_type),)*
         }
 
-        impl <$lifetime> $crate::DecodeInstruction for $ident <$lifetime> {
+        impl $crate::DecodeInstruction for $ident {
             fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<(), Box<dyn std::error::Error>> {
                 match utf8_discrim {
                     $(
                       $variant if utf8_discrim == $crate::get_type_name::<$ix_type>() => {
                           println!("Decoding instruction: {}", utf8_discrim);
-                          // let ix = <$ix_type>::deserialize(&data[8..])?;
-                          let ix = anchor_lang::prelude::AnchorDeserialize::deserialize(&mut &data[..])?;
-                          println!("Decoded instruction: {:#?}", ix);
-                          // Ok(Self::$variant(acct.clone()))
+                          let ix = <$ix_type>::deserialize(&mut &data[8..])?;
+                          // let ix = anchor_lang::prelude::AnchorDeserialize::deserialize(&mut &data[..])?;
+                          // println!("Decoded instruction: {}", ix);
                           Ok(())
                       },
                     )*

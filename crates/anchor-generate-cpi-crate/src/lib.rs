@@ -68,11 +68,25 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let ix_idents = gen.instruction_idents();
     let ix_variants = ix_idents.into_iter().map(|ident| {
         let variant_name = ident.clone();
-        quote! { #variant_name(#ident<'info>) }
+
+        // Construct the path prefix
+        let path_prefix: syn::Path = syn::parse_str("instruction").unwrap();
+
+        // Create a new PathSegment with the input Ident
+        let mut segments = path_prefix.segments.clone();
+        segments.push(syn::PathSegment::from(ident));
+
+        // Combine the path prefix and the Ident
+        let full_path = syn::Path {
+            leading_colon: path_prefix.leading_colon,
+            segments,
+        };
+        
+        quote! { #variant_name(#full_path) }
     });
     let ix_ts2: proc_macro2::TokenStream = quote! {
         anchor_gen::decode_instruction!(
-            pub enum InstructionType<'info> {
+            pub enum InstructionType {
                 #(#ix_variants,)*
             }
         );
