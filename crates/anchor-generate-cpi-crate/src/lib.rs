@@ -48,49 +48,48 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     };
 
     let gen = opts.to_generator();
-    let mut ts: proc_macro::TokenStream = gen.generate_cpi_interface().into();
+    let mut ts: proc_macro2::TokenStream = gen.generate_cpi_interface();
 
-    let acct_idents = gen.account_idents();
-    let acct_variants = acct_idents.into_iter().map(|ident| {
+    let acct_variants = gen.account_types().into_iter().map(|ident| {
         let variant_name = ident.clone();
         quote! { #variant_name(#ident) }
     });
-    let account_ts: proc_macro::TokenStream = quote! {
-        anchor_gen::decode_account!(
+    let account_ts = quote! {
+        anchor_gen::derive_account_type!(
             pub enum AccountType {
                 #(#acct_variants,)*
             }
         );
-    }.into();
+    };
     ts.extend(account_ts);
 
-    let ix_idents = gen.instruction_idents();
-    let ix_variants = ix_idents.into_iter().map(|ident| {
+    
+    let ix_variants = gen.instruction_types().into_iter().map(|ident| {
         let variant_name = ident.clone();
-
+    
         // Construct the path prefix
         let path_prefix: syn::Path = syn::parse_str("instruction").unwrap();
-
+    
         // Create a new PathSegment with the input Ident
         let mut segments = path_prefix.segments.clone();
         segments.push(syn::PathSegment::from(ident));
-
+    
         // Combine the path prefix and the Ident
         let full_path = syn::Path {
             leading_colon: path_prefix.leading_colon,
             segments,
         };
-        
+    
         quote! { #variant_name(#full_path) }
     });
-    let ix_ts: proc_macro::TokenStream = quote! {
-        anchor_gen::decode_instruction!(
+    let ix_ts = quote! {
+        anchor_gen::derive_instruction_type!(
             pub enum InstructionType {
                 #(#ix_variants,)*
             }
         );
-    }.into();
+    };
     ts.extend(ix_ts);
-
-    ts
+    
+    ts.into()
 }
