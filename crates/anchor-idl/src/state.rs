@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use anchor_syn::idl::{IdlField, IdlTypeDefinition};
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
 use crate::{generate_fields, get_field_list_properties, StructOpts};

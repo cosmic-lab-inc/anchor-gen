@@ -1,3 +1,11 @@
+pub fn get_type_name<'a, T: ?Sized + 'a>() -> String {
+  let full_type_name = std::any::type_name::<T>();
+  match full_type_name.rsplit_once("::") {
+    Some((_path, type_name)) => type_name.to_string(),
+    None => full_type_name.to_string(), // Handle cases without a path
+  }
+}
+
 pub trait DecodeAccount: Sized {
   /// Deserialize a program account into its defined (struct) type using Borsh.
   /// utf8 discriminant is the human-readable discriminant, such as "User", and usually the name
@@ -42,15 +50,18 @@ macro_rules! decode_account {
 
 #[macro_export]
 macro_rules! decode_instruction {
-    ($vis:vis enum $ident:ident {
-        $($variant:ident ($ix_type:ty)),*$(,)?
+    ($vis:vis enum $ident:ident <$lifetime:lifetime> {
+        $($variant:ident($ix_type:ident<$lt:lifetime>)),*$(,)?
     }) => {
-        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
-        $vis enum $ident {
-            $($variant($ix_type),)*
+        // #[repr(C)]
+        // #[derive(anchor_lang::prelude::AnchorDeserialize)]
+        // #[derive(Clone)]
+        $vis enum $ident <$lifetime> {
+            $($variant($ix_type<$lifetime>),)*
+
         }
 
-        impl $crate::DecodeInstruction for $ident {
+        impl <$lifetime> $crate::DecodeInstruction for $ident <$lifetime> {
             fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<(), Box<dyn std::error::Error>> {
                 match utf8_discrim {
                     $(
@@ -66,12 +77,4 @@ macro_rules! decode_instruction {
             }
         }
     };
-}
-
-pub fn get_type_name<T: ?Sized + 'static>() -> String {
-  let full_type_name = std::any::type_name::<T>();
-  match full_type_name.rsplit_once("::") {
-    Some((_path, type_name)) => type_name.to_string(),
-    None => full_type_name.to_string(), // Handle cases without a path
-  }
 }

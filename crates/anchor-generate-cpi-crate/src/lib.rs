@@ -14,8 +14,8 @@
 //!
 //! More examples can be found in the [examples/](https://github.com/saber-hq/anchor-gen/tree/master/examples) directory.
 
-use anchor_idl::GeneratorOptions;
 use quote::quote;
+use anchor_idl::GeneratorOptions;
 use syn::{parse_macro_input, LitStr};
 
 /// Generates an Anchor CPI crate from a JSON file.
@@ -71,9 +71,11 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         quote! { #variant_name(#ident<'info>) }
     });
     let ix_ts2: proc_macro2::TokenStream = quote! {
-        pub enum InstructionType<'info> {
-            #(#ix_variants,)*
-        }
+        anchor_gen::decode_instruction!(
+            pub enum InstructionType<'info> {
+                #(#ix_variants,)*
+            }
+        );
     };
     let ix_ts: proc_macro::TokenStream = ix_ts2.into();
     ts.extend(ix_ts);
