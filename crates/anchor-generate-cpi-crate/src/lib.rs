@@ -55,14 +55,13 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         let variant_name = ident.clone();
         quote! { #variant_name(#ident) }
     });
-    let account_ts2: proc_macro2::TokenStream = quote! {
+    let account_ts: proc_macro::TokenStream = quote! {
         anchor_gen::decode_account!(
             pub enum AccountType {
                 #(#acct_variants,)*
             }
         );
-    };
-    let account_ts: proc_macro::TokenStream = account_ts2.into();
+    }.into();
     ts.extend(account_ts);
 
     let ix_idents = gen.instruction_idents();
@@ -84,14 +83,13 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         
         quote! { #variant_name(#full_path) }
     });
-    let ix_ts2: proc_macro2::TokenStream = quote! {
+    let ix_ts: proc_macro::TokenStream = quote! {
         anchor_gen::decode_instruction!(
             pub enum InstructionType {
                 #(#ix_variants,)*
             }
         );
-    };
-    let ix_ts: proc_macro::TokenStream = ix_ts2.into();
+    }.into();
     ts.extend(ix_ts);
 
     ts

@@ -53,7 +53,6 @@ macro_rules! decode_instruction {
     ($vis:vis enum $ident:ident {
         $($variant:ident($ix_type:path)),*$(,)?
     }) => {
-        // #[repr(C)]
         // #[derive(Clone)]
         #[derive(anchor_lang::prelude::AnchorSerialize, anchor_lang::prelude::AnchorDeserialize)]
         $vis enum $ident {
@@ -65,10 +64,7 @@ macro_rules! decode_instruction {
                 match utf8_discrim {
                     $(
                       $variant if utf8_discrim == $crate::get_type_name::<$ix_type>() => {
-                          println!("Decoding instruction: {}", utf8_discrim);
                           let ix = <$ix_type>::deserialize(&mut &data[8..])?;
-                          // let ix = anchor_lang::prelude::AnchorDeserialize::deserialize(&mut &data[..])?;
-                          // println!("Decoded instruction: {}", ix);
                            Ok(Self::$variant(ix))
                       },
                     )*
