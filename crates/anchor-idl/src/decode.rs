@@ -17,7 +17,7 @@ pub trait DecodeInstruction: Sized {
   /// Deserialize a program instruction into its defined (struct) type using Borsh.
   /// utf8 discriminant is the human-readable discriminant, such as "PlacePerpOrder", and usually the name
   /// of the struct marked with an Anchor macro that derives the Discriminator trait.
-  fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<(), Box<dyn std::error::Error>>;
+  fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>>;
 }
 
 #[macro_export]
@@ -61,7 +61,7 @@ macro_rules! decode_instruction {
         }
 
         impl $crate::DecodeInstruction for $ident {
-            fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<(), Box<dyn std::error::Error>> {
+            fn decode(utf8_discrim: &str, data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>> {
                 match utf8_discrim {
                     $(
                       $variant if utf8_discrim == $crate::get_type_name::<$ix_type>() => {
@@ -69,7 +69,7 @@ macro_rules! decode_instruction {
                           let ix = <$ix_type>::deserialize(&mut &data[8..])?;
                           // let ix = anchor_lang::prelude::AnchorDeserialize::deserialize(&mut &data[..])?;
                           // println!("Decoded instruction: {}", ix);
-                          Ok(())
+                           Ok(Self::$variant(ix))
                       },
                     )*
                     _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid instruction discriminant".to_string())))
