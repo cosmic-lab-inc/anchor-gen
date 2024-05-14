@@ -67,7 +67,9 @@ macro_rules! decode_instruction {
                     $(
                       $variant if utf8_discrim == $crate::get_type_name::<$ix_type>() => {
                           println!("Decoding instruction: {}", utf8_discrim);
-                          // let acct = <$ix_type>::try_from_slice(&data[8..])?;
+                          // let ix = <$ix_type>::deserialize(&data[8..])?;
+                          let ix = anchor_lang::prelude::AnchorDeserialize::deserialize(&mut &data[8..])?;
+                          println!("Decoded instruction: {:#?}", ix);
                           // Ok(Self::$variant(acct.clone()))
                           Ok(())
                       },
