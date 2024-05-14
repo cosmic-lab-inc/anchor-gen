@@ -130,42 +130,4 @@ impl Generator {
         let ix_idents: Vec<Ident> = self.idl.instructions.iter().map(|d| format_ident!("{}", d.name.to_pascal_case())).collect();
         ix_idents
     }
-    
-    // pub fn account_discriminators(&self) -> HashMap<String, [u8; 8]> {
-    //     let mut discrims: HashMap<String, [u8; 8]> = HashMap::new();
-    //     for a in self.idl.accounts.iter() {
-    //         let name = a.name.to_pascal_case();
-    //         discrims.insert(name.clone(), Self::account_discriminator(&name));
-    //     }
-    //     discrims
-    // }
-    // 
-    // pub fn instruction_discriminators(&self) -> HashMap<String, [u8; 8]> {
-    //     let mut discrims: HashMap<String, [u8; 8]> = HashMap::new();
-    //     for a in self.idl.instructions.iter() {
-    //         let name = a.name.to_snake_case();
-    //         discrims.insert(name.clone(), Self::instruction_discriminator(&name));
-    //     }
-    //     discrims
-    // }
-    // 
-    // /// Derives the account discriminator from the account name as Anchor does.
-    // /// Accounts are PascalCase.
-    // pub fn account_discriminator(name: &str) -> [u8; 8] {
-    //     let name = name.to_pascal_case();
-    //     let mut discriminator = [0u8; 8];
-    //     let hashed = hash(format!("account:{}", name).as_bytes()).to_bytes();
-    //     discriminator.copy_from_slice(&hashed[..8]);
-    //     discriminator
-    // }
-    // 
-    // /// Derives the instruction discriminator from the instruction name as Anchor does.
-    // /// Instructions are snake_case.
-    // pub fn instruction_discriminator(name: &str) -> [u8; 8] {
-    //     let name = name.to_snake_case();
-    //     let mut discriminator = [0u8; 8];
-    //     let hashed = hash(format!("global:{}", name).as_bytes()).to_bytes();
-    //     discriminator.copy_from_slice(&hashed[..8]);
-    //     discriminator
-    // }
 }
