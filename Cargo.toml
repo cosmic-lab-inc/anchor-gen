@@ -1,2 +1,4 @@
 [workspace]
 members = ["crates/*", "examples/*"]
+# exclude
+exclude = ["examples/drift"]

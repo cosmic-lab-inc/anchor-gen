@@ -19,27 +19,85 @@ License: Apache-2.0
 
 ## Example
 ```rust
-anchor_gen::generate_cpi_crate("path/to/idl.json");
-// I'm using this crate under the alias "drift_cpi" since there are many programs using this macro
-// which all export the same InstructionType/AccountType enum
+use solana_sdk::bs58;
+use solana_transaction_status::{UiInstruction, UiMessage, UiParsedInstruction};
+use anchor_gen::prelude::*;
 
-// data from a transaction instruction
-let data: Vec<u8> = [1,2,3,4,4,5,1,3,4,1,3,4,2,4];
-let ix: drift_cpi::InstructionType = drift_cpi::InstructionType::decode(&data[..])?;
-match ix {
-drift_cpi::InstructionType::PlacePerpOrder(ix) => {},
-drift_cpi::InstructionType::CancelOrders(ix) => {},
-drift_cpi::InstructionType::PlaceAndTakePerpOrder(ix) => {},
-_ => { // 50 other ix types... }
-};
+generate_cpi_crate!("idl.json");
+declare_id!("dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH");
 
-let acct: solana_sdk::account::Account = rpc.get_account(&key).await?;
-let data: Vec<u8> = acct.data;
-let ix: drift_cpi::AccounType = drift_cpi::AccountType::decode(&data[..])?;
-match ix {
-drift_cpi::AccountType::User(user) => {},
-drift_cpi::AccountType::PerpMarket(market) => {},
-drift_cpi::AccountType::SpotMarket(market) => {},
-_ => { // 10 other account types... }
-};
+
+#[test]
+fn accounts() -> anyhow::Result<()>  {
+  let rpc = solana_client::rpc_client::RpcClient::new("https://api.mainnet-beta.solana.com".to_string());
+  let key = solana_sdk::pubkey!("H5jfagEnMVNH3PMc2TU2F7tNuXE6b4zCwoL5ip1b4ZHi");
+  let acct = rpc.get_account(&key)?;
+  let data: Vec<u8> = acct.data;
+  let ix: AccountType = AccountType::decode(&data[..]).map_err(
+    |e| anyhow::anyhow!("Failed to decode account: {:?}", e)
+  )?;
+  match ix {
+    AccountType::User(user) => println!("{}", user.settled_perp_pnl),
+    AccountType::PerpMarket(market) => println!("{}", market.amm.oracle),
+    AccountType::SpotMarket(market) => println!("{}", market.flash_loan_amount),
+    _ => {}
+  }
+  Ok(())
+}
+
+#[test]
+fn instructions() -> anyhow::Result<()>  {
+  use std::str::FromStr;
+  use solana_transaction_status::UiTransactionEncoding;
+  use solana_transaction_status::EncodedTransaction;
+
+  let rpc = solana_client::rpc_client::RpcClient::new("https://api.mainnet-beta.solana.com".to_string());
+  let key = solana_sdk::pubkey!("H5jfagEnMVNH3PMc2TU2F7tNuXE6b4zCwoL5ip1b4ZHi");
+  let results = rpc.get_signatures_for_address(&key)?;
+  if !results.is_empty() {
+    let result = results[0].clone();
+    let signature = solana_sdk::signature::Signature::from_str(&result.signature)?;
+    let tx = rpc.get_transaction(&signature, UiTransactionEncoding::JsonParsed)?;
+    if let EncodedTransaction::Json(tx) = tx.transaction.transaction {
+      if let UiMessage::Parsed(msg) = tx.message {
+        for ui_ix in msg.instructions {
+          if let UiInstruction::Parsed(ui_parsed_ix) = ui_ix {
+            match ui_parsed_ix {
+              UiParsedInstruction::Parsed(parsed_ix) => {
+                println!("parsed ix for program \"{}\": {:#?}", parsed_ix.program, parsed_ix.parsed)
+              }
+              UiParsedInstruction::PartiallyDecoded(ui_decoded_ix) => {
+                let data: Vec<u8> = bs58::decode(ui_decoded_ix.data.clone()).into_vec()?;
+                // only match instruction if it belongs to the IDL that generated this crate (the Drift program)
+                if data.len() >= 8 && ui_decoded_ix.program_id == id().to_string() {
+                  if let Ok(discrim) = data[..8].try_into() {
+                    let ix = InstructionType::decode(&data[..]).map_err(
+                      |e| anyhow::anyhow!("Failed to decode instruction: {:?}", e)
+                    )?;
+                    let name = InstructionType::discrim_to_name(discrim).unwrap();
+                    match ix {
+                      InstructionType::PlacePerpOrder(ix) => {
+                        println!("{}, {:#?}", name, ix._params);
+                      }
+                      InstructionType::PlaceAndTakePerpOrder(ix) => {
+                        println!("{}, {:#?}", name, ix._params);
+                      }
+                      InstructionType::PlaceOrders(ix) => {
+                        for params in ix._params {
+                          println!("{}, {:#?}", name, params);
+                        }
+                      }
+                      _ => {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  Ok(())
+}
 ```

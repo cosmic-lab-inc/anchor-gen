@@ -7,7 +7,7 @@ use std::{
 // use anchor_lang::solana_program::hash::hash;
 
 use darling::{util::PathList, FromMeta};
-use heck::{ToPascalCase, ToSnakeCase};
+use heck::ToPascalCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
