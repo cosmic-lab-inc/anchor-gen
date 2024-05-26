@@ -21,7 +21,7 @@ compat-program-result = ["anchor-idl/compat-program-result"]
 anchor-idl = { version = "0.3.1", path = "../anchor-idl" }
 proc-macro2 = "1"
 quote = "1"
-syn = { version = "1", features = ["full"] }
+syn = { version = "2", features = ["full"] }
 
 [dev-dependencies]
 anchor-lang = "0.24.2"
