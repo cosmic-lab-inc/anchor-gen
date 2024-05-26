@@ -13,7 +13,7 @@ compat-program-result = []
 
 [dependencies]
 anchor-lang = ">0.20.0"
-anchor-syn = { version = "0.24.2", features = ["idl"] }
+anchor-syn = { version = "0.28.0", features = ["idl"] }
 darling = "0.14"
 heck = "0.4.1"
 proc-macro2 = "1"
