@@ -12,9 +12,9 @@ cpi = ["no-entrypoint"]
 
 [dependencies]
 anchor-gen = { version = "0.3.1", path = "../../crates/anchor-gen" }
-solana-client = "1.14.16"
-tokio = { version = "1.37.0", features = ["full"] }
-anyhow = "1.0.75"
-solana-sdk = "1.14.16"
 anchor-lang = "0.29.0"
+anyhow = "1.0.75"
+solana-client = "1.14.16"
+solana-sdk = "1.14.16"
 solana-transaction-status = "1.14.16"
+tokio = { version = "1.37.0", features = ["full"] }

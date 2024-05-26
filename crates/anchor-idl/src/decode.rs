@@ -1,11 +1,11 @@
 use anchor_lang::solana_program::hash::hash;
 use heck::{ToPascalCase, ToSnakeCase};
 
-pub fn get_type_name<'a, T: ?Sized + 'a>() -> String {
-  let full_type_name = std::any::type_name::<T>();
-  match full_type_name.rsplit_once("::") {
-    Some((_path, type_name)) => type_name.to_string(),
-    None => full_type_name.to_string(), // Handle cases without a path
+pub fn ident_name<'a, T: ?Sized + 'a>() -> String {
+  let full_ident_name = std::any::type_name::<T>();
+  match full_ident_name.rsplit_once("::") {
+    Some((_path, ident_name)) => ident_name.to_string(),
+    None => full_ident_name.to_string(), // Handle cases without a path
   }
 }
 
@@ -69,7 +69,7 @@ macro_rules! derive_account_type {
             })?;
             match discrim {
               $(
-                $variant if discrim == &$crate::account_discriminator(&$crate::get_type_name::<$account_type>()) => {
+                $variant if discrim == &$crate::account_discriminator(&$crate::ident_name::<$account_type>()) => {
                     let acct = <$account_type>::try_from_slice(&data[8..])?;
                     Ok(Self::$variant(acct.clone()))
                 },
@@ -83,8 +83,8 @@ macro_rules! derive_account_type {
             fn name_to_discrim(name: &str) -> std::result::Result<[u8; 8], Box<dyn std::error::Error>> {
                 match name {
                     $(
-                      $variant if name == $crate::get_type_name::<$account_type>() => {
-                          let discrim = $crate::account_discriminator(&$crate::get_type_name::<$account_type>());
+                      $variant if name == $crate::ident_name::<$account_type>() => {
+                          let discrim = $crate::account_discriminator(&$crate::ident_name::<$account_type>());
                           Ok(discrim)
                       },
                     )*
@@ -97,8 +97,8 @@ macro_rules! derive_account_type {
             fn discrim_to_name(discrim: [u8; 8]) -> std::result::Result<String, Box<dyn std::error::Error>> {
                 match discrim {
                     $(
-                      $variant if discrim == $crate::account_discriminator(&$crate::get_type_name::<$account_type>()) => {
-                          let name = $crate::get_type_name::<$account_type>();
+                      $variant if discrim == $crate::account_discriminator(&$crate::ident_name::<$account_type>()) => {
+                          let name = $crate::ident_name::<$account_type>();
                           Ok(name)
                       },
                     )*
@@ -127,7 +127,7 @@ macro_rules! derive_instruction_type {
             })?;
             match discrim {
                 $(
-                  $variant if discrim == &$crate::instruction_discriminator(&$crate::get_type_name::<$ix_type>()) => {
+                  $variant if discrim == &$crate::instruction_discriminator(&$crate::ident_name::<$ix_type>()) => {
                       let ix = <$ix_type>::deserialize(&mut &data[8..])?;
                        Ok(Self::$variant(ix))
                   },
@@ -141,8 +141,8 @@ macro_rules! derive_instruction_type {
             fn name_to_discrim(name: &str) -> std::result::Result<[u8; 8], Box<dyn std::error::Error>> {
                 match name {
                     $(
-                      $variant if name == $crate::get_type_name::<$ix_type>() => {
-                          let discrim = $crate::instruction_discriminator(&$crate::get_type_name::<$ix_type>());
+                      $variant if name == $crate::ident_name::<$ix_type>() => {
+                          let discrim = $crate::instruction_discriminator(&$crate::ident_name::<$ix_type>());
                           Ok(discrim)
                       },
                     )*
@@ -155,8 +155,8 @@ macro_rules! derive_instruction_type {
             fn discrim_to_name(discrim: [u8; 8]) -> std::result::Result<String, Box<dyn std::error::Error>> {
                 match discrim {
                     $(
-                      $variant if discrim == $crate::instruction_discriminator(&$crate::get_type_name::<$ix_type>()) => {
-                          let name = $crate::get_type_name::<$ix_type>();
+                      $variant if discrim == $crate::instruction_discriminator(&$crate::ident_name::<$ix_type>()) => {
+                          let name = $crate::ident_name::<$ix_type>();
                           Ok(name)
                       },
                     )*
