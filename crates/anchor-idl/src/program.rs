@@ -3,15 +3,13 @@ use std::{
     env, fs,
     path::PathBuf,
 };
-// use std::collections::HashMap;
-// use anchor_lang::solana_program::hash::hash;
 
 use darling::{util::PathList, FromMeta};
 use heck::ToPascalCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
-use crate::{generate_accounts, generate_ix_handlers, generate_ix_structs, generate_typedefs, GEN_VERSION};
+use crate::{generate_accounts, generate_ix_handlers, generate_ix_structs, generate_typedefs, GEN_VERSION, generate_events};
 
 #[derive(Default, FromMeta)]
 pub struct GeneratorOptions {
@@ -37,7 +35,7 @@ impl GeneratorOptions {
         let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
         let path = PathBuf::from(cargo_manifest_dir).join(&self.idl_path);
         let idl_contents = fs::read_to_string(path).unwrap();
-        let idl: anchor_syn::idl::Idl = serde_json::from_str(&idl_contents).unwrap();
+        let idl: anchor_syn::idl::types::Idl = serde_json::from_str(&idl_contents).unwrap();
 
         let zero_copy = path_list_to_string(self.zero_copy.as_ref());
         let packed = path_list_to_string(self.packed.as_ref());
@@ -65,7 +63,7 @@ pub struct StructOpts {
 }
 
 pub struct Generator {
-    pub idl: anchor_syn::idl::Idl,
+    pub idl: anchor_syn::idl::types::Idl,
     pub struct_opts: BTreeMap<String, StructOpts>,
 }
 
@@ -86,7 +84,7 @@ impl Generator {
             &GEN_VERSION.unwrap_or("unknown")
         );
 
-        quote! {
+        let token_stream = quote! {
             use anchor_lang::prelude::*;
 
             pub mod typedefs {
@@ -117,6 +115,49 @@ impl Generator {
 
                 use super::*;
                 #ix_handlers
+            }
+        };
+
+        if let Some(events) = &idl.events {
+            let event_stream = generate_events(&events);
+
+            quote! {
+                #token_stream
+
+                pub mod events {
+                    //! Events emitted by the program.
+                    use super::*;
+                    #event_stream
+                }
+
+                use ix_accounts::*;
+                pub use state::*;
+                pub use events::*;
+                pub use typedefs::*;
+
+                #[program]
+                pub mod #program_name {
+                    #![doc = #docs]
+
+                    use super::*;
+                    #ix_handlers
+                }
+            }
+        } else {
+            quote! {
+                #token_stream
+
+                use ix_accounts::*;
+                pub use state::*;
+                pub use typedefs::*;
+
+                #[program]
+                pub mod #program_name {
+                    #![doc = #docs]
+
+                    use super::*;
+                    #ix_handlers
+                }
             }
         }
     }

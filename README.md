@@ -13,7 +13,7 @@ declare_id!("GjphYQcbP1m3FuDyCTUJf2mUMxKPE3j6feWU1rxvC7Ps");
 
 This will generate a fully functional Rust CPI client for your IDL.
 
-More examples can be found in the [examples/](https://github.com/saber-hq/anchor-gen/tree/master/examples) directory.
+More examples can be found in the [examples/](https://github.com/cosmic-lab-inc/anchor-gen/tree/master/examples) directory.
 
 License: Apache-2.0
 

@@ -1,6 +1,9 @@
 use std::collections::BTreeMap;
 
-use anchor_syn::idl::{EnumFields, IdlEnumVariant, IdlField, IdlType, IdlTypeDefinition};
+use anchor_syn::idl::types::{
+    EnumFields, IdlEnumVariant, IdlEvent, IdlEventField, IdlField, IdlType, IdlTypeDefinition,
+    IdlTypeDefinitionTy,
+};
 use heck::ToSnakeCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
@@ -82,6 +85,8 @@ pub fn get_type_properties(defs: &[IdlTypeDefinition], ty: &IdlType) -> FieldLis
         | IdlType::F64
         | IdlType::U128
         | IdlType::I128
+        | IdlType::U256
+        | IdlType::I256
         | IdlType::PublicKey => FieldListProperties {
             can_copy: true,
             can_derive_default: true,
@@ -97,12 +102,11 @@ pub fn get_type_properties(defs: &[IdlTypeDefinition], ty: &IdlType) -> FieldLis
         IdlType::Defined(inner) => {
             let def = defs.iter().find(|def| def.name == *inner).unwrap();
             match &def.ty {
-                anchor_syn::idl::IdlTypeDefinitionTy::Struct { fields } => {
-                    get_field_list_properties(defs, fields)
-                }
-                anchor_syn::idl::IdlTypeDefinitionTy::Enum { variants } => {
+                IdlTypeDefinitionTy::Struct { fields } => get_field_list_properties(defs, fields),
+                IdlTypeDefinitionTy::Enum { variants } => {
                     get_variant_list_properties(defs, variants)
                 }
+                IdlTypeDefinitionTy::Alias { value } => todo!(),
             }
         }
         IdlType::Option(inner) => get_type_properties(defs, inner),
@@ -114,11 +118,29 @@ pub fn get_type_properties(defs: &[IdlTypeDefinition], ty: &IdlType) -> FieldLis
                 can_derive_default: can_derive_array_len && inner.can_derive_default,
             }
         }
+        IdlType::GenericLenArray(_, _) => todo!(),
+        IdlType::Generic(_) => todo!(),
+        IdlType::DefinedWithTypeArgs { name, args } => todo!(),
     }
 }
 
 /// Generates struct fields from a list of [IdlField]s.
 pub fn generate_fields(fields: &[IdlField]) -> TokenStream {
+    let fields_rendered = fields.iter().map(|arg| {
+        let name = format_ident!("{}", arg.name.to_snake_case());
+        let type_name = crate::ty_to_rust_type(&arg.ty);
+        let stream: proc_macro2::TokenStream = type_name.parse().unwrap();
+        quote! {
+            pub #name: #stream
+        }
+    });
+    quote! {
+        #(#fields_rendered),*
+    }
+}
+
+/// Generates event fields from a list of [IdlField]s.
+pub fn generate_event_fields(fields: &[IdlEventField]) -> TokenStream {
     let fields_rendered = fields.iter().map(|arg| {
         let name = format_ident!("{}", arg.name.to_snake_case());
         let type_name = crate::ty_to_rust_type(&arg.ty);
@@ -187,6 +209,17 @@ pub fn generate_struct(
     }
 }
 
+/// Generates an event.
+pub fn generate_event(event_name: &Ident, fields: &[IdlEventField]) -> TokenStream {
+    let fields_rendered = generate_event_fields(fields);
+    quote! {
+        #[event]
+        pub struct #event_name {
+            #fields_rendered
+        }
+    }
+}
+
 /// Generates an enum.
 pub fn generate_enum(
     defs: &[IdlTypeDefinition],
@@ -229,14 +262,26 @@ pub fn generate_typedefs(
     let defined = typedefs.iter().map(|def| {
         let struct_name = format_ident!("{}", def.name);
         match &def.ty {
-            anchor_syn::idl::IdlTypeDefinitionTy::Struct { fields } => {
+            IdlTypeDefinitionTy::Struct { fields } => {
                 let opts = struct_opts.get(&def.name).copied().unwrap_or_default();
                 generate_struct(typedefs, &struct_name, fields, opts)
             }
-            anchor_syn::idl::IdlTypeDefinitionTy::Enum { variants } => {
+            IdlTypeDefinitionTy::Enum { variants } => {
                 generate_enum(typedefs, &struct_name, variants)
             }
+            IdlTypeDefinitionTy::Alias { value } => quote! {},
         }
+    });
+    quote! {
+        #(#defined)*
+    }
+}
+
+/// Generates events.
+pub fn generate_events(events: &[IdlEvent]) -> TokenStream {
+    let defined = events.iter().map(|evt| {
+        let event_name = format_ident!("{}", evt.name);
+        generate_event(&event_name, &evt.fields)
     });
     quote! {
         #(#defined)*
