@@ -56,8 +56,8 @@ macro_rules! derive_account_type {
         $($variant:ident ($account_type:ty)),*$(,)?
     }) => {
         #[repr(C)]
-        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
         #[derive(Clone)]
+        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
         $vis enum $ident {
             $($variant($account_type),)*
         }

@@ -65,7 +65,6 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         };
         ts.extend(account_ts);
     }
-
     
     let ix_variants = gen.instruction_types().into_iter().map(|ident| {
         let variant_name = ident.clone();

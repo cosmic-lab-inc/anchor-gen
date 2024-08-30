@@ -1,7 +1,5 @@
 #![allow(clippy::too_many_arguments)]
 
-use solana_sdk::bs58;
-use solana_transaction_status::{UiInstruction, UiMessage, UiParsedInstruction};
 use anchor_gen::prelude::*;
 
 generate_cpi_crate!("idl.json");

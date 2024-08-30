@@ -1,5 +1,6 @@
 [workspace]
-#members = ["crates/*", "examples/*"]
-members = ["crates/*"]
-# exclude
-exclude = ["examples/drift"]
+members = ["crates/*", "examples/*"]
+exclude = [
+#    "examples/drift",
+    "examples/whirlpools"
+]

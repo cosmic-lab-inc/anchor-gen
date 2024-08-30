@@ -17,3 +17,4 @@ cpi = ["no-entrypoint"]
 [dependencies]
 anchor-gen = { version = "0.3.4", path = "../../crates/anchor-gen" }
 anchor-lang = ">=0.20"
+bytemuck = "1"

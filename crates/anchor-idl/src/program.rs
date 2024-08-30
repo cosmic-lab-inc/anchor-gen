@@ -68,10 +68,61 @@ pub struct Generator {
 }
 
 impl Generator {
-    pub fn generate_cpi_interface(&self) -> TokenStream {
+    pub fn __generate_cpi_interface(&self) -> TokenStream {
         let idl = &self.idl;
         let program_name: Ident = format_ident!("{}", idl.name);
         
+        let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
+        let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
+        let ix_handlers = generate_ix_handlers(&idl.instructions);
+        let ix_structs = generate_ix_structs(&idl.instructions);
+
+        let docs = format!(
+            " Anchor CPI crate generated from {} v{} using [anchor-gen](https://crates.io/crates/anchor-gen) v{}.",
+            &idl.name,
+            &idl.version,
+            &GEN_VERSION.unwrap_or("unknown")
+        );
+
+        quote! {
+            use anchor_lang::prelude::*;
+
+            pub mod typedefs {
+                //! User-defined types.
+                use super::*;
+                #typedefs
+            }
+
+            pub mod state {
+                //! Structs of accounts which hold state.
+                use super::*;
+                #accounts
+            }
+
+            pub mod ix_accounts {
+                //! Accounts used in instructions.
+                use super::*;
+                #ix_structs
+            }
+
+            use ix_accounts::*;
+            pub use state::*;
+            pub use typedefs::*;
+
+            #[program]
+            pub mod #program_name {
+                #![doc = #docs]
+
+                use super::*;
+                #ix_handlers
+            }
+        }
+    }
+
+    pub fn generate_cpi_interface(&self) -> TokenStream {
+        let idl = &self.idl;
+        let program_name: Ident = format_ident!("{}", idl.name);
+
         let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
         let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
         let ix_handlers = generate_ix_handlers(&idl.instructions);
@@ -103,18 +154,6 @@ impl Generator {
                 //! Accounts used in instructions.
                 use super::*;
                 #ix_structs
-            }
-
-            use ix_accounts::*;
-            pub use state::*;
-            pub use typedefs::*;
-
-            #[program]
-            pub mod #program_name {
-                #![doc = #docs]
-
-                use super::*;
-                #ix_handlers
             }
         };
 
