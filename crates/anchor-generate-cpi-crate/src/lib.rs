@@ -51,29 +51,29 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let gen = opts.to_generator();
     let mut ts: proc_macro2::TokenStream = gen.generate_cpi_interface();
 
-    // let event_variants = gen.event_types().into_iter().map(|ident| {
-    //     let variant_name = ident.clone();
-    //     quote! { #variant_name(#ident) }
-    // });
-
-    let event_variants = gen.instruction_types().into_iter().map(|ident| {
+    let event_variants = gen.event_types().into_iter().map(|ident| {
         let variant_name = ident.clone();
-
-        // Construct the path prefix
-        let path_prefix: syn::Path = syn::parse_str("events").unwrap();
-
-        // Create a new PathSegment with the input Ident
-        let mut segments = path_prefix.segments.clone();
-        segments.push(syn::PathSegment::from(ident));
-
-        // Combine the path prefix and the Ident
-        let full_path = syn::Path {
-            leading_colon: path_prefix.leading_colon,
-            segments,
-        };
-
-        quote! { #variant_name(#full_path) }
+        quote! { #variant_name(#ident) }
     });
+
+    // let event_variants = gen.instruction_types().into_iter().map(|ident| {
+    //     let variant_name = ident.clone();
+    // 
+    //     // Construct the path prefix
+    //     let path_prefix: syn::Path = syn::parse_str("events").unwrap();
+    // 
+    //     // Create a new PathSegment with the input Ident
+    //     let mut segments = path_prefix.segments.clone();
+    //     segments.push(syn::PathSegment::from(ident));
+    // 
+    //     // Combine the path prefix and the Ident
+    //     let full_path = syn::Path {
+    //         leading_colon: path_prefix.leading_colon,
+    //         segments,
+    //     };
+    // 
+    //     quote! { #variant_name(#full_path) }
+    // });
     
     if event_variants.len() > 0 {
         let event_ts = quote! {
