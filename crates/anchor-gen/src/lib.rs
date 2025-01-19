@@ -30,6 +30,7 @@ pub mod prelude {
   // pub use anchor_idl::ident_name;
   pub use anchor_idl::derive_account_type;
   pub use anchor_idl::derive_instruction_type;
+  pub use anchor_idl::derive_event_type;
   pub use anchor_idl::Decode;
   pub use anchor_idl::NameToDiscrim;
   pub use anchor_idl::DiscrimToName;
