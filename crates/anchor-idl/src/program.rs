@@ -229,7 +229,7 @@ impl Generator {
             None => vec![],
             Some(events) => events
                 .iter()
-                .map(|d| format_ident!("{}", d.name.to_pascal_case()))
+                .map(|d| format_ident!("{}", d.name))
                 .collect(),
         };
         ix_idents

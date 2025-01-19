@@ -55,16 +55,16 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         let variant_name = ident.clone();
         quote! { #variant_name(#ident) }
     });
-    // if event_variants.len() > 0 {
-    //     let event_ts = quote! {
-    //         anchor_gen::derive_event_type!(
-    //             pub enum EventType {
-    //                 #(#event_variants,)*
-    //             }
-    //         );
-    //     };
-    //     ts.extend(event_ts);
-    // }
+    if event_variants.len() > 0 {
+        let event_ts = quote! {
+            anchor_gen::derive_event_type!(
+                pub enum EventType {
+                    #(#event_variants,)*
+                }
+            );
+        };
+        ts.extend(event_ts);
+    }
 
     let acct_variants = gen.account_types().into_iter().map(|ident| {
         let variant_name = ident.clone();
