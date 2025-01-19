@@ -50,6 +50,16 @@ pub fn instruction_discriminator(name: &str) -> [u8; 8] {
   discriminator
 }
 
+/// Derives the event discriminator from the event name as Anchor does.
+/// Events are snake_case.
+pub fn event_discriminator(name: &str) -> [u8; 8] {
+    let name = name.to_snake_case();
+    let mut discriminator = [0u8; 8];
+    let hashed = hash(format!("event:{}", name).as_bytes()).to_bytes();
+    discriminator.copy_from_slice(&hashed[..8]);
+    discriminator
+}
+
 #[macro_export]
 macro_rules! derive_account_type {
     ($vis:vis enum $ident:ident {
@@ -161,6 +171,65 @@ macro_rules! derive_instruction_type {
                       },
                     )*
                     _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid instruction discriminator".to_string())))
+                }
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! derive_event_type {
+    ($vis:vis enum $ident:ident {
+        $($variant:ident ($event_type:ty)),*$(,)?
+    }) => {
+        #[repr(C)]
+        #[derive(Clone)]
+        #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
+        $vis enum $ident {
+            $($variant($event_type),)*
+        }
+
+        impl $crate::Decode for $ident {
+          fn decode(data: &[u8]) -> std::result::Result<Self, Box<dyn std::error::Error>> {
+            let discrim: &[u8; 8] = data[..8].try_into().map_err(|e| {
+              Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Event data is not 8 bytes or more".to_string()))
+            })?;
+            match discrim {
+              $(
+                $variant if discrim == &$crate::event_discriminator(&$crate::ident_name::<$event_type>()) => {
+                    let acct = <$event_type>::try_from_slice(&data[8..])?;
+                    Ok(Self::$variant(acct.clone()))
+                },
+              )*
+              _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid event discriminator".to_string())))
+            }
+          }
+        }
+
+        impl $crate::NameToDiscrim for $ident {
+            fn name_to_discrim(name: &str) -> std::result::Result<[u8; 8], Box<dyn std::error::Error>> {
+                match name {
+                    $(
+                      $variant if name == $crate::ident_name::<$event_type>() => {
+                          let discrim = $crate::event_discriminator(&$crate::ident_name::<$event_type>());
+                          Ok(discrim)
+                      },
+                    )*
+                    _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid event name".to_string())))
+                }
+            }
+        }
+
+        impl $crate::DiscrimToName for $ident {
+            fn discrim_to_name(discrim: [u8; 8]) -> std::result::Result<String, Box<dyn std::error::Error>> {
+                match discrim {
+                    $(
+                      $variant if discrim == $crate::event_discriminator(&$crate::ident_name::<$event_type>()) => {
+                          let name = $crate::ident_name::<$event_type>();
+                          Ok(name)
+                      },
+                    )*
+                    _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid event discriminator".to_string())))
                 }
             }
         }

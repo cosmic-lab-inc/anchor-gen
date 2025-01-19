@@ -210,4 +210,11 @@ impl Generator {
         let ix_idents: Vec<Ident> = self.idl.instructions.iter().map(|d| format_ident!("{}", d.name.to_pascal_case())).collect();
         ix_idents
     }
+
+    pub fn event_types(&self) -> Vec<Ident> {
+        let ix_idents: Vec<Ident> = self.idl.events.iter().flat_map(|d| 
+            d.iter().map(|e| format_ident!("{}", e.name.to_pascal_case())))
+            .collect();
+        ix_idents
+    }
 }

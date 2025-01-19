@@ -51,49 +51,64 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let gen = opts.to_generator();
     let mut ts: proc_macro2::TokenStream = gen.generate_cpi_interface();
 
-    // let acct_variants = gen.account_types().into_iter().map(|ident| {
-    //     let variant_name = ident.clone();
-    //     quote! { #variant_name(#ident) }
-    // });
-    // if acct_variants.len() > 0 {
-    //     let account_ts = quote! {
-    //         anchor_gen::derive_account_type!(
-    //             pub enum AccountType {
-    //                 #(#acct_variants,)*
-    //             }
-    //         );
-    //     };
-    //     ts.extend(account_ts);
-    // }
-    // 
-    // let ix_variants = gen.instruction_types().into_iter().map(|ident| {
-    //     let variant_name = ident.clone();
-    // 
-    //     // Construct the path prefix
-    //     let path_prefix: syn::Path = syn::parse_str("instruction").unwrap();
-    // 
-    //     // Create a new PathSegment with the input Ident
-    //     let mut segments = path_prefix.segments.clone();
-    //     segments.push(syn::PathSegment::from(ident));
-    // 
-    //     // Combine the path prefix and the Ident
-    //     let full_path = syn::Path {
-    //         leading_colon: path_prefix.leading_colon,
-    //         segments,
-    //     };
-    // 
-    //     quote! { #variant_name(#full_path) }
-    // });
-    // if ix_variants.len() > 0 {
-    //     let ix_ts = quote! {
-    //         anchor_gen::derive_instruction_type!(
-    //             pub enum InstructionType {
-    //                 #(#ix_variants,)*
-    //             }
-    //         );
-    //     };
-    //     ts.extend(ix_ts);
-    // }
+    let event_variants = gen.event_types().into_iter().map(|ident| {
+        let variant_name = ident.clone();
+        quote! { #variant_name(#ident) }
+    });
+    if event_variants.len() > 0 {
+        let account_ts = quote! {
+            anchor_gen::derive_event_type!(
+                pub enum EventType {
+                    #(#event_variants,)*
+                }
+            );
+        };
+        ts.extend(account_ts);
+    }
+
+    let acct_variants = gen.account_types().into_iter().map(|ident| {
+        let variant_name = ident.clone();
+        quote! { #variant_name(#ident) }
+    });
+    if acct_variants.len() > 0 {
+        let account_ts = quote! {
+            anchor_gen::derive_account_type!(
+                pub enum AccountType {
+                    #(#acct_variants,)*
+                }
+            );
+        };
+        ts.extend(account_ts);
+    }
+    
+    let ix_variants = gen.instruction_types().into_iter().map(|ident| {
+        let variant_name = ident.clone();
+    
+        // Construct the path prefix
+        let path_prefix: syn::Path = syn::parse_str("instruction").unwrap();
+    
+        // Create a new PathSegment with the input Ident
+        let mut segments = path_prefix.segments.clone();
+        segments.push(syn::PathSegment::from(ident));
+    
+        // Combine the path prefix and the Ident
+        let full_path = syn::Path {
+            leading_colon: path_prefix.leading_colon,
+            segments,
+        };
+    
+        quote! { #variant_name(#full_path) }
+    });
+    if ix_variants.len() > 0 {
+        let ix_ts = quote! {
+            anchor_gen::derive_instruction_type!(
+                pub enum InstructionType {
+                    #(#ix_variants,)*
+                }
+            );
+        };
+        ts.extend(ix_ts);
+    }
     
     ts.into()
 }
