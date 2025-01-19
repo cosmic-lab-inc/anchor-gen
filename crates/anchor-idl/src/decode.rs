@@ -125,7 +125,6 @@ macro_rules! derive_instruction_type {
     ($vis:vis enum $ident:ident {
         $($variant:ident($ix_type:path)),*$(,)?
     }) => {
-        // #[derive(Clone)]
         #[derive(anchor_lang::prelude::AnchorSerialize, anchor_lang::prelude::AnchorDeserialize)]
         $vis enum $ident {
             $($variant($ix_type),)*
@@ -183,8 +182,6 @@ macro_rules! derive_event_type {
     ($vis:vis enum $ident:ident {
         $($variant:ident ($event_type:ty)),*$(,)?
     }) => {
-        #[repr(C)]
-        #[derive(Clone)]
         #[derive(anchor_lang::prelude::AnchorDeserialize, anchor_lang::prelude::AnchorSerialize)]
         $vis enum $ident {
             $($variant($event_type),)*
