@@ -34,7 +34,7 @@ pub trait DiscrimToName: Sized {
 /// Derives the account discriminator from the account name as Anchor does.
 /// Accounts are PascalCase.
 pub fn account_discriminator(name: &str) -> [u8; 8] {
-    let name = name.to_pascal_case();
+    // let name = name.to_pascal_case();
     let mut discriminator = [0u8; 8];
     let hashed = hash(format!("account:{}", name).as_bytes()).to_bytes();
     discriminator.copy_from_slice(&hashed[..8]);
@@ -54,7 +54,7 @@ pub fn instruction_discriminator(name: &str) -> [u8; 8] {
 /// Derives the event discriminator from the event name as Anchor does.
 /// Events are snake_case.
 pub fn event_discriminator(name: &str) -> [u8; 8] {
-    let name = name.to_pascal_case();
+    // let name = name.to_pascal_case();
     let mut discriminator = [0u8; 8];
     let hashed = hash(format!("event:{}", name).as_bytes()).to_bytes();
     discriminator.copy_from_slice(&hashed[..8]);
