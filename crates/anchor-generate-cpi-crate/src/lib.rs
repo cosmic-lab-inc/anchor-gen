@@ -55,36 +55,16 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         let variant_name = ident.clone();
         quote! { #variant_name(#ident) }
     });
-
-    // let event_variants = gen.instruction_types().into_iter().map(|ident| {
-    //     let variant_name = ident.clone();
-    // 
-    //     // Construct the path prefix
-    //     let path_prefix: syn::Path = syn::parse_str("events").unwrap();
-    // 
-    //     // Create a new PathSegment with the input Ident
-    //     let mut segments = path_prefix.segments.clone();
-    //     segments.push(syn::PathSegment::from(ident));
-    // 
-    //     // Combine the path prefix and the Ident
-    //     let full_path = syn::Path {
-    //         leading_colon: path_prefix.leading_colon,
-    //         segments,
+    // if event_variants.len() > 0 {
+    //     let event_ts = quote! {
+    //         anchor_gen::derive_event_type!(
+    //             pub enum EventType {
+    //                 #(#event_variants,)*
+    //             }
+    //         );
     //     };
-    // 
-    //     quote! { #variant_name(#full_path) }
-    // });
-    
-    if event_variants.len() > 0 {
-        let event_ts = quote! {
-            anchor_gen::derive_event_type!(
-                pub enum EventType {
-                    #(#event_variants,)*
-                }
-            );
-        };
-        ts.extend(event_ts);
-    }
+    //     ts.extend(event_ts);
+    // }
 
     let acct_variants = gen.account_types().into_iter().map(|ident| {
         let variant_name = ident.clone();
