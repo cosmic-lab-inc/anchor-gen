@@ -9,7 +9,10 @@ use heck::ToPascalCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
-use crate::{generate_accounts, generate_ix_handlers, generate_ix_structs, generate_typedefs, GEN_VERSION, generate_events};
+use crate::{
+    generate_accounts, generate_events, generate_ix_handlers, generate_ix_structs,
+    generate_typedefs, GEN_VERSION,
+};
 
 #[derive(Default, FromMeta)]
 pub struct GeneratorOptions {
@@ -71,7 +74,7 @@ impl Generator {
     pub fn __generate_cpi_interface(&self) -> TokenStream {
         let idl = &self.idl;
         let program_name: Ident = format_ident!("{}", idl.name);
-        
+
         let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
         let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
         let ix_handlers = generate_ix_handlers(&idl.instructions);
@@ -200,21 +203,35 @@ impl Generator {
             }
         }
     }
-    
+
     pub fn account_types(&self) -> Vec<Ident> {
-        let acct_idents: Vec<Ident> = self.idl.accounts.iter().map(|d| format_ident!("{}", d.name)).collect();
+        let acct_idents: Vec<Ident> = self
+            .idl
+            .accounts
+            .iter()
+            .map(|d| format_ident!("{}", d.name))
+            .collect();
         acct_idents
     }
 
     pub fn instruction_types(&self) -> Vec<Ident> {
-        let ix_idents: Vec<Ident> = self.idl.instructions.iter().map(|d| format_ident!("{}", d.name.to_pascal_case())).collect();
+        let ix_idents: Vec<Ident> = self
+            .idl
+            .instructions
+            .iter()
+            .map(|d| format_ident!("{}", d.name.to_pascal_case()))
+            .collect();
         ix_idents
     }
 
     pub fn event_types(&self) -> Vec<Ident> {
-        let ix_idents: Vec<Ident> = self.idl.events.iter().flat_map(|d| 
-            d.iter().map(|e| format_ident!("{}", e.name.to_pascal_case())))
-            .collect();
+        let ix_idents: Vec<Ident> = match &self.idl.events {
+            None => vec![],
+            Some(events) => events
+                .iter()
+                .map(|d| format_ident!("{}", d.name.to_pascal_case()))
+                .collect(),
+        };
         ix_idents
     }
 }

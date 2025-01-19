@@ -12,11 +12,11 @@
 //!
 //! This will generate a fully functional Rust CPI client for your IDL.
 //!
-//! More examples can be found in the [examples/](https://github.com/cosmic-lab-inc/anchor-gen/tree/master/examples) 
+//! More examples can be found in the [examples/](https://github.com/cosmic-lab-inc/anchor-gen/tree/master/examples)
 //! directory.
 
-use quote::quote;
 use anchor_idl::GeneratorOptions;
+use quote::quote;
 use syn::{parse_macro_input, LitStr};
 
 /// Generates an Anchor CPI crate from a JSON file.
@@ -56,14 +56,14 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         quote! { #variant_name(#ident) }
     });
     if event_variants.len() > 0 {
-        let account_ts = quote! {
+        let event_ts = quote! {
             anchor_gen::derive_event_type!(
                 pub enum EventType {
                     #(#event_variants,)*
                 }
             );
         };
-        ts.extend(account_ts);
+        ts.extend(event_ts);
     }
 
     let acct_variants = gen.account_types().into_iter().map(|ident| {
@@ -80,23 +80,23 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         };
         ts.extend(account_ts);
     }
-    
+
     let ix_variants = gen.instruction_types().into_iter().map(|ident| {
         let variant_name = ident.clone();
-    
+
         // Construct the path prefix
         let path_prefix: syn::Path = syn::parse_str("instruction").unwrap();
-    
+
         // Create a new PathSegment with the input Ident
         let mut segments = path_prefix.segments.clone();
         segments.push(syn::PathSegment::from(ident));
-    
+
         // Combine the path prefix and the Ident
         let full_path = syn::Path {
             leading_colon: path_prefix.leading_colon,
             segments,
         };
-    
+
         quote! { #variant_name(#full_path) }
     });
     if ix_variants.len() > 0 {
@@ -109,6 +109,6 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         };
         ts.extend(ix_ts);
     }
-    
+
     ts.into()
 }
