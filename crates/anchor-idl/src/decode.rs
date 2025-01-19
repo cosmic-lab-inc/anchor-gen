@@ -195,8 +195,10 @@ macro_rules! derive_event_type {
             match discrim {
               $(
                 $variant if discrim == &$crate::event_discriminator(&$crate::ident_name::<$event_type>()) => {
-                    let acct = <$event_type>::try_from_slice(&data[8..])?;
-                    Ok(Self::$variant(acct.clone()))
+                    // let event = <$event_type>::try_from_slice(&data[8..])?;
+                    // Ok(Self::$variant(event.clone()))
+                    let event = <$event_type>::deserialize(&mut &data[8..])?;
+                    Ok(Self::$variant(event))
                 },
               )*
               _ => Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Invalid event discriminator".to_string())))
